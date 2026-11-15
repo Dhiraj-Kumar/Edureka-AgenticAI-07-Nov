@@ -11,12 +11,13 @@ load_dotenv()
 
 model = ChatOpenRouter(model="gpt-4.1-mini")
 
+
 @tool
 def getWeatherData(city: str):
     """
     Get the current weather for a city using openweathermap api
     """
-    url="https://api.openweathermap.org/data/2.5/weather"
+    url = "https://api.openweathermap.org/data/2.5/weather"
     params = {
         "q": city,
         "appid": os.getenv("WEATHER_API_KEY"),
@@ -29,6 +30,7 @@ def getWeatherData(city: str):
         return f"Unable to fetch data from weather api"
     return response.json()
 
+
 with SqliteSaver.from_conn_string("checkpointdb.sqlite") as checkkpointer:
     checkkpointer.setup()
     agent = create_agent(
@@ -36,18 +38,18 @@ with SqliteSaver.from_conn_string("checkpointdb.sqlite") as checkkpointer:
         system_prompt="You are an experienced AI weather assistant who answers queries about latest weather information by calling external tools. You give your responses with a bit of humour. Use emojis to make your responses looks good.",
         checkpointer=checkkpointer,
         tools=[getWeatherData],
-        middleware=[
-            SummarizationMiddleware(
-                # trigger=("tokens", 50000)
-                trigger=("fraction", 0.6),
-                keep=("messages", 10)
-            )
-        ]
+        # middleware=[
+        #     SummarizationMiddleware(
+        #         # trigger=("tokens", 50000)
+        #         trigger=("fraction", 0.6),
+        #         keep=("messages", 10)
+        #     )
+        # ]
     )
 
     while True:
         user_input = input("You: ")
-        if user_input.lower()=="exit":
+        if user_input.lower() == "exit":
             break
         response = agent.invoke(
             {
